@@ -1,0 +1,8 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Isotipo Refugio">
+  <path d="M19 76V38.5C19 29.8 23.1 21.9 30.2 16.9L48 4L65.8 16.9C72.9 21.9 77 29.8 77 38.5V76" stroke="#E4AE4B" stroke-width="2.6"/>
+  <path d="M28 76V41.5C28 33.9 31.3 27.2 37.2 22.2L48 13.2L58.8 22.2C64.7 27.2 68 33.9 68 41.5V76" stroke="#E4AE4B" stroke-width="2.1"/>
+  <path d="M34 76V43C34 35.3 40.3 29 48 29C55.7 29 62 35.3 62 43V76" stroke="#E4AE4B" stroke-width="2.1"/>
+  <path d="M48 29V39M43 39H53M41 49H55M38 61H58M33 76H63" stroke="#E4AE4B" stroke-width="2.1" stroke-linecap="round"/>
+  <path d="M48 39C48 39 42.8 43.4 42.8 47.5C42.8 50.4 45.1 52.3 48 52.3C50.9 52.3 53.2 50.4 53.2 47.5C53.2 43.4 48 39 48 39Z" fill="#E4AE4B"/>
+  <circle cx="48" cy="38.5" r="2.3" fill="#0B0C0C"/>
+</svg>
