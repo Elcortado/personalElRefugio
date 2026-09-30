@@ -7,10 +7,6 @@
 <link rel="icon" href="logo-refugio.svg" type="image/svg+xml">
 <title>Refugio · Registro de personal</title>
 
-<!-- ================================================================
-  FIREBASE: reemplazá este objeto con el que te dio la consola de Firebase
-  (Configuración del proyecto > Tus apps > objeto firebaseConfig)
-================================================================= -->
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyCGDhnZn9nguIEyUM8_zfHoUxcP0jlB8Ks",
@@ -92,6 +88,9 @@
   .scrollx{overflow-x:auto;}
   .filters{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px;}
   .filters select,.filters input{width:auto;flex:1;min-width:135px;}
+  .filter-field{flex:1;min-width:135px;}
+  .filter-field label{margin:0 0 5px;}
+  .filter-field input{width:100%;min-width:0;}
   .del{color:var(--danger);cursor:pointer;font-size:.72rem;transition:color .2s;}
   .del:hover{color:#ffb0a3;text-decoration:underline;}
   .msg{font-size:.78rem;margin-top:10px;min-height:1.15em;}
@@ -104,7 +103,7 @@
     header h1{font-size:1.65rem;}#status{margin-top:3px;}
     .wrap{padding:22px 15px 36px;}.tabs{margin-bottom:16px;padding:4px;}.tab{padding:9px 12px;font-size:.73rem;}
     .card{padding:18px 16px;border-radius:15px;}.row{grid-template-columns:1fr;gap:0;}
-    .filters select,.filters input{min-width:100%;}.filters button{width:100%;}
+    .filters select,.filters input,.filter-field{min-width:100%;}.filters button{width:100%;}
   }
 </style>
 </head>
@@ -171,7 +170,14 @@
       <h2>Historial de jornadas</h2>
       <div class="filters">
         <select id="h-filtro-emp"><option value="">Todos los empleados</option></select>
-        <input type="date" id="h-filtro-fecha">
+        <div class="filter-field">
+          <label for="h-filtro-desde">Desde</label>
+          <input type="date" id="h-filtro-desde">
+        </div>
+        <div class="filter-field">
+          <label for="h-filtro-hasta">Hasta</label>
+          <input type="date" id="h-filtro-hasta">
+        </div>
         <button class="secondary" id="h-clear" type="button">Limpiar filtros</button>
       </div>
       <div class="scrollx">
@@ -180,6 +186,7 @@
           <tbody id="h-body"><tr><td colspan="7" class="empty">Cargando...</td></tr></tbody>
         </table>
       </div>
+      <div class="totalbar"><span>Horas del período filtrado</span><b id="h-horas">0 hs</b></div>
       <div class="totalbar"><span>Total del período filtrado</span><b id="h-total">$0</b></div>
     </div>
   </section>
@@ -328,13 +335,27 @@ document.getElementById('r-fecha').valueAsDate = new Date();
 function renderHistorial(){
   const body = document.getElementById('h-body');
   const fEmp = document.getElementById('h-filtro-emp').value;
-  const fFecha = document.getElementById('h-filtro-fecha').value;
+  const fDesde = document.getElementById('h-filtro-desde').value;
+  const fHasta = document.getElementById('h-filtro-hasta').value;
+  const horasTotal = document.getElementById('h-horas');
+  const total = document.getElementById('h-total');
+
+  if(fDesde && fHasta && fDesde > fHasta){
+    body.innerHTML = '<tr><td colspan="7" class="empty">El rango de fechas no es válido: “Desde” debe ser anterior o igual a “Hasta”.</td></tr>';
+    horasTotal.textContent = '0 hs';
+    total.textContent = '$0';
+    return;
+  }
+
   let list = registros.filter(r=>
-    (!fEmp || r.empleadoId===fEmp) && (!fFecha || r.fecha===fFecha)
+    (!fEmp || r.empleadoId===fEmp) &&
+    (!fDesde || r.fecha>=fDesde) &&
+    (!fHasta || r.fecha<=fHasta)
   );
   if(list.length===0){
     body.innerHTML = '<tr><td colspan="7" class="empty">No hay registros para este filtro.</td></tr>';
-    document.getElementById('h-total').textContent = '$0';
+    horasTotal.textContent = '0 hs';
+    total.textContent = '$0';
     return;
   }
   body.innerHTML = list.map(r=>`
@@ -350,14 +371,18 @@ function renderHistorial(){
   body.querySelectorAll('.del').forEach(b=>b.addEventListener('click', async ()=>{
     if(confirm('¿Eliminar este registro?')) await dbRef.collection('registros').doc(b.dataset.id).delete();
   }));
-  const total = list.reduce((s,r)=>s+Number(r.pago||0),0);
-  document.getElementById('h-total').textContent = '$'+total.toLocaleString('es-AR');
+  const totalHoras = list.reduce((s,r)=>s+Number(r.horas||0),0);
+  const totalPago = list.reduce((s,r)=>s+Number(r.pago||0),0);
+  horasTotal.textContent = totalHoras.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})+' hs';
+  total.textContent = '$'+totalPago.toLocaleString('es-AR');
 }
 document.getElementById('h-filtro-emp').addEventListener('change', renderHistorial);
-document.getElementById('h-filtro-fecha').addEventListener('change', renderHistorial);
+document.getElementById('h-filtro-desde').addEventListener('change', renderHistorial);
+document.getElementById('h-filtro-hasta').addEventListener('change', renderHistorial);
 document.getElementById('h-clear').addEventListener('click', ()=>{
   document.getElementById('h-filtro-emp').value='';
-  document.getElementById('h-filtro-fecha').value='';
+  document.getElementById('h-filtro-desde').value='';
+  document.getElementById('h-filtro-hasta').value='';
   renderHistorial();
 });
 
